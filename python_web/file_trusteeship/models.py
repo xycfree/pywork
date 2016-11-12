@@ -29,13 +29,13 @@ from ext import db
 
 class PasteFile(db.Model):
     __tablename__ = 'PasteFile'
-    id = db.column(db.Integer, primary_key=True)
-    filename = db.column(db.String(5000), nullable=False)
-    filehash = db.column(db.String(128), nullable=False, unique=True)
-    filemd5 = db.column(db.String(128), nullable=False, unique=True)
-    uploadtime = db.column(db.dateTime, nullable=False)
-    mimetype = db.column(db.String(256), nullable=False)
-    size = db.column(db.Integer, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(5000), nullable=False)
+    filehash = db.Column(db.String(128), nullable=False, unique=True)
+    filemd5 = db.Column(db.String(128), nullable=False, unique=True)
+    uploadtime = db.Column(db.DateTime, nullable=False)
+    mimetype = db.Column(db.String(256), nullable=False)
+    size = db.Column(db.Integer, nullable=False)
 
     def __init__(self, filename='', mimetype='application/octet-stream', size=0,
                  filehash=None, filemd5=None):
@@ -148,6 +148,36 @@ class PasteFile(db.Model):
     @classmethod
     def rsize(cls,old_paste,weight,height):
         assert old_paste.is_image, TypeError('Unsupported Image Type')
+        img = cropresize2.crop_resize(Image.open(old_paste),
+            old_paste.mimetype, 0)
+        rst = cls(old_paste.filename, old_paste.mimetype, 0)
+        img.save(rst.path)
+        filestat = os.stat(rst.path)
+        rst.size = filestat.st_size
+        return rst
+
+    @property
+    def is_image(self):
+        return self.mimetype in IMAGE_MIMES
+
+    @property
+    def is_audio(self):
+        return self.mimetype in AUDIO_MIMES
+
+    @property
+    def is_video(self):
+        return self.mimetype in VIDEO_MIMES
+
+    @property
+    def is_pdf(self):
+        return self.mimetype == 'application/pdf'
+
+    @property
+    def type(self):
+        for t in ('image', 'pdf', 'video', 'audio'):
+            if getattr(self, 'is_' + t):
+                return t
+        return 'binary'
 
 
 

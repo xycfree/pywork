@@ -22,7 +22,8 @@ IMAGE_MIMES = [
     'image/jpeg',
     'image/gif',
     'image/png',
-    'image/webp'
+    'image/webp',
+    'image/jpg'
     ]
 
 VIDEO_MIMES = [
